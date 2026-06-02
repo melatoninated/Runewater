@@ -13,7 +13,6 @@ import com.battleship.model.Ship;
 import com.battleship.model.enums.CannonballType;
 import com.battleship.model.enums.Element;
 import com.battleship.model.enums.EnemyTrait;
-import com.battleship.model.enums.StatusEffect;
 import com.battleship.util.TerminalUi;
 
 /**
@@ -42,24 +41,22 @@ public class BattleEngine {
 
         while (player.isAlive() && enemy.isAlive()) {
             if (playerTurn) {
+                boolean frozenAtTurnStart = player.isFrozen();
                 String statusLog = player.processStatus();
                 if (!statusLog.isEmpty()) addWrappedLog(battleLog, statusLog);
 
-                if (player.isFrozen()) {
-                    addLog(battleLog, "[FROZEN] Anda membeku! Giliran dilewati.");
-                    player.applyStatus(StatusEffect.NONE, 0);
+                if (frozenAtTurnStart) {
                     playerTurn = false;
                     ui.pause("Battle", buildBattleLines(enemy, battleLog, List.of("Giliran Anda terlewati.")));
                     continue;
                 }
                 player.resetShield();
             } else {
+                boolean frozenAtTurnStart = enemy.isFrozen();
                 String statusLog = enemy.processStatus();
                 if (!statusLog.isEmpty()) addWrappedLog(battleLog, statusLog);
 
-                if (enemy.isFrozen()) {
-                    addLog(battleLog, "[FROZEN] " + enemy.getName() + " membeku! Giliran dilewati.");
-                    enemy.applyStatus(StatusEffect.NONE, 0);
+                if (frozenAtTurnStart) {
                     playerTurn = true;
                     if (!enemy.isAlive()) break;
                     ui.pause("Battle", buildBattleLines(enemy, battleLog, List.of("Musuh gagal bergerak.")));
@@ -146,19 +143,15 @@ public class BattleEngine {
         int choice = ui.promptChoice("Battle", lines, 1, 4, 1, "Pilih peluru (1-4):");
         CannonballType chosen = types[choice - 1];
 
-        int damage = player.fireCannonball(chosen, enemy);
+        int cannonMultiplier = cannonDoubled.get() ? 2 : 1;
+        int damage = player.fireCannonball(chosen, enemy, cannonMultiplier);
         if (damage < 0) {
             addLog(battleLog, "Stok " + chosen.getDisplayName() + " habis. Otomatis pakai Peluru Besi.");
-            damage = player.fireCannonball(CannonballType.IRON, enemy);
+            damage = player.fireCannonball(CannonballType.IRON, enemy, cannonMultiplier);
             chosen = CannonballType.IRON;
         }
 
-        if (enemy instanceof EnemyShip enemyShip) {
-            damage = enemyShip.applyArmorReduction(damage, true);
-        }
-
         if (cannonDoubled.get()) {
-            damage *= 2;
             cannonDoubled.set(false);
         }
 
@@ -223,11 +216,17 @@ public class BattleEngine {
             return;
         }
 
+        int enemyHpBefore = enemy.getCurrentHp();
         String spellResult = player.castSpell(enemy, mage);
         addWrappedLog(battleLog, spellResult);
 
         if (enemy instanceof EnemyShip enemyShip && enemyShip.getTrait() == EnemyTrait.THORNS) {
-            addLog(battleLog, "[BERDURI] Sebagian efek jurus memantul ke kapal Anda.");
+            int damageDealt = Math.max(0, enemyHpBefore - enemy.getCurrentHp());
+            if (damageDealt > 0) {
+                int reflected = Math.max(1, (int) (damageDealt * 0.15));
+                player.takeDamage(reflected);
+                addLog(battleLog, "[BERDURI] " + reflected + " damage jurus dipantulkan ke kapal Anda.");
+            }
         }
     }
 

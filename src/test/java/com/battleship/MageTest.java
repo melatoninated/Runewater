@@ -26,6 +26,21 @@ class MageTest {
     }
 
     @Test
+    void gainXp_canTriggerMultipleLevelUps() {
+        // Arrange
+        Mage mage = new Mage("Ignis", Element.FIRE, 20, SpellType.INFERNO);
+
+        // Act
+        boolean didLevelUp = mage.gainXp(65);
+
+        // Assert
+        assertTrue(didLevelUp, "gainXp(65) should trigger more than one level");
+        assertEquals(3, mage.getLevel(), "Level should increase twice");
+        assertEquals(5, mage.getXp(), "Remaining XP should carry over after both levels");
+        assertEquals(34, mage.getMagicPower(), "Magic power should increase by 7 per level");
+    }
+
+    @Test
     void gainXp_noLevelUp() {
         // Arrange
         Mage mage = new Mage("Ignis", Element.FIRE, 20, SpellType.INFERNO);

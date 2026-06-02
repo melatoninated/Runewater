@@ -78,13 +78,14 @@ public class Mage {
     /** Berikan XP ke Mage ini. Jika cukup, otomatis naik level (+7 magicPower). */
     public boolean gainXp(int amount) {
         xp += amount;
-        if (xp >= XP_PER_LEVEL) {
-            xp         -= XP_PER_LEVEL;
+        boolean leveledUp = false;
+        while (xp >= XP_PER_LEVEL) {
+            xp -= XP_PER_LEVEL;
             level++;
             magicPower += 7;
-            return true;
+            leveledUp = true;
         }
-        return false;
+        return leveledUp;
     }
 
     // -------------------------------------------------------------------------

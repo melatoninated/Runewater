@@ -1,0 +1,27 @@
+# Maven build output
+target/
+
+# Local presentation and report artifacts
+presentation/
+*.pptx
+*.pdf
+
+# IDE settings
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# Java and editor artifacts
+*.class
+*.log
+*.tmp
+*.swp
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini

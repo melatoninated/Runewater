@@ -38,9 +38,12 @@ public class EnemyShip extends Ship implements Describable {
 
     public String processTrait() {
         if (trait != EnemyTrait.REGENERATE) return "";
+        int before = getCurrentHp();
         int healAmount = 10;
         setCurrentHp(getCurrentHp() + healAmount);
-        return String.format("  [REGEN] %s memulihkan %d HP!%n", getName(), healAmount);
+        int healed = getCurrentHp() - before;
+        if (healed <= 0) return "";
+        return String.format("  [REGEN] %s memulihkan %d HP!%n", getName(), healed);
     }
 
     /** Hitung damage keluar dengan bonus BERSERKER jika aktif. */

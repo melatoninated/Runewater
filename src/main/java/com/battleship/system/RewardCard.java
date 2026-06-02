@@ -19,13 +19,13 @@ public class RewardCard {
         RECRUIT_MAGE,           // Tambah Mage baru ke roster
         HEAL_SMALL,             // Heal 45 HP
         HEAL_LARGE,             // Heal 80 HP
-        UPGRADE_CANNON,         // +7 base damage permanen
-        UPGRADE_MAGE_POWER,     // +18 magic power ke Mage pilihan
+        UPGRADE_CANNON,         // +5 base damage permanen
+        UPGRADE_MAGE_POWER,     // +12 magic power ke Mage pilihan
         ADD_POTION,             // +1 potion (maks 3)
         ADD_EXPLOSIVE,          // +3 Peluru Ledak
         ADD_CHAIN,              // +3 Peluru Rantai
         ADD_GRAPESHOT,          // +3 Peluru Angin
-        UPGRADE_ALL_MAGE_SMALL, // +5 power ke SEMUA Mage
+        UPGRADE_ALL_MAGE_SMALL, // +3 power ke SEMUA Mage
         DOUBLE_CANNON_DMG       // [LANGKA] Cannon x2 di battle berikutnya
     }
 
@@ -58,15 +58,15 @@ public class RewardCard {
         List<RewardCard> pool = new ArrayList<>();
 
         pool.add(new RewardCard(Type.RECRUIT_MAGE,
-                "Rekrut Mage Baru",      "Tambah Mage acak ke roster (maks 5).",          10));
+                "Rekrut Mage Baru",      "Tambah Mage acak ke roster (maks 5).",           9));
         pool.add(new RewardCard(Type.HEAL_SMALL,
                 "Perbaikan Cepat",       "Pulihkan 45 HP.",                               12));
         pool.add(new RewardCard(Type.HEAL_LARGE,
                 "Perbaikan Total",       "Pulihkan 80 HP.",                                6));
         pool.add(new RewardCard(Type.UPGRADE_CANNON,
-                "Upgrade Meriam",        "+7 Base Damage permanen.",                      10));
+                "Upgrade Meriam",        "+5 Base Damage permanen.",                       7));
         pool.add(new RewardCard(Type.UPGRADE_MAGE_POWER,
-                "Latih Mage",            "+18 Magic Power ke Mage pilihan.",               9));
+                "Latih Mage",            "+12 Magic Power ke Mage pilihan.",               6));
         pool.add(new RewardCard(Type.ADD_POTION,
                 "Stok Potion",           "+1 Potion (heal 50 HP, maks 3).",               8));
         pool.add(new RewardCard(Type.ADD_EXPLOSIVE,
@@ -76,7 +76,7 @@ public class RewardCard {
         pool.add(new RewardCard(Type.ADD_GRAPESHOT,
                 "Amunisi Angin x3",      "+3 Peluru Angin (BURNED DoT).",                8));
         pool.add(new RewardCard(Type.UPGRADE_ALL_MAGE_SMALL,
-                "Ritual Kolektif",       "+5 Magic Power ke SEMUA Mage di roster.",       4));
+                "Ritual Kolektif",       "+3 Magic Power ke SEMUA Mage di roster.",        3));
         pool.add(new RewardCard(Type.DOUBLE_CANNON_DMG,
                 "[LANGKA] Kapal Berkibar","Cannon damage x2 di battle berikutnya.",       2));
 

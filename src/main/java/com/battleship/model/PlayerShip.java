@@ -4,6 +4,7 @@ import java.util.*;
 import com.battleship.interfaces.Describable;
 import com.battleship.interfaces.MagicCastable;
 import com.battleship.model.enums.*;
+import com.battleship.util.BalanceConfig;
 
 /**
  * Kapal yang dikendalikan pemain. Menyimpan roster Mage (maks 5),
@@ -129,12 +130,20 @@ public class PlayerShip extends Ship implements MagicCastable, Describable {
     // -------------------------------------------------------------------------
 
     public int fireCannonball(CannonballType type, Ship target) {
+        return fireCannonball(type, target, 1);
+    }
+
+    public int fireCannonball(CannonballType type, Ship target, int damageMultiplier) {
         int stock = getAmmoCount(type);
         if (type != CannonballType.IRON && stock <= 0) return -1;
 
         if (type != CannonballType.IRON) ammo.put(type, stock - 1);
 
-        int damage = effectiveDamage((int)(getBaseDamage() * type.dmgMult));
+        int multiplier = Math.max(1, damageMultiplier);
+        int damage = effectiveDamage((int)(getBaseDamage() * type.dmgMult * multiplier));
+        if (target instanceof EnemyShip enemyShip) {
+            damage = enemyShip.applyArmorReduction(damage, true);
+        }
 
         if (type.appliesBurn) target.applyStatus(StatusEffect.BURNED,   3);
         if (type.appliesWeak) target.applyStatus(StatusEffect.WEAKENED, 3);
@@ -170,7 +179,8 @@ public class PlayerShip extends Ship implements MagicCastable, Describable {
 
         switch (mage.getSpellType()) {
             case INFERNO: {
-                int damage = (int)(basePower * 3.0 * synergyMult);
+                double elemMult = mage.getElement().getMultiplier(target.getElement());
+                int damage = (int)(basePower * BalanceConfig.INFERNO_MULT * elemMult * synergyMult);
                 target.takeDamage(damage);
                 result.append(String.format(
                         "  *** INFERNO! %s membakar segalanya! Damage: %d ***",
@@ -189,7 +199,7 @@ public class PlayerShip extends Ship implements MagicCastable, Describable {
             }
             case TIDAL_WAVE: {
                 double elemMult = mage.getElement().getMultiplier(target.getElement());
-                int    damage   = (int)(basePower * 2.0 * elemMult * synergyMult);
+                int    damage   = (int)(basePower * BalanceConfig.TIDAL_WAVE_MULT * elemMult * synergyMult);
                 target.takeDamage(damage);
                 int hpBefore = getCurrentHp();
                 heal(35);
@@ -210,7 +220,7 @@ public class PlayerShip extends Ship implements MagicCastable, Describable {
             }
             case CHAIN_BOLT: {
                 double elemMult = mage.getElement().getMultiplier(target.getElement());
-                int    damage   = (int)(basePower * 2.5 * elemMult * synergyMult);
+                int    damage   = (int)(basePower * BalanceConfig.CHAIN_BOLT_MULT * elemMult * synergyMult);
                 target.takeDamage(damage);
                 target.applyStatus(StatusEffect.WEAKENED, 3);
                 result.append(String.format(
@@ -223,7 +233,7 @@ public class PlayerShip extends Ship implements MagicCastable, Describable {
                 int totalDamage = 0;
                 for (Mage m : roster) {
                     double elemMult = m.getElement().getMultiplier(target.getElement());
-                    int    hit      = (int)((getBaseDamage() + m.getMagicPower()) * 1.2 * elemMult);
+                    int    hit      = (int)((getBaseDamage() + m.getMagicPower()) * BalanceConfig.OVERCHARGE_MULT * elemMult);
                     target.takeDamage(hit);
                     totalDamage += hit;
                     result.append(String.format("    - %s (%s): %d damage%n",

@@ -117,12 +117,12 @@ public class GameManager {
 
         List<String> starterLines = new ArrayList<>();
         starterLines.add("Pilih Mage pertama dan jurus pembuka:");
-        starterLines.add("[1] FIRE  + INFERNO    (Damage x3.0, sekali pakai)");
+        starterLines.add("[1] FIRE  + INFERNO    (Damage x1.6 + elemen, sekali pakai)");
         starterLines.add("[2] FIRE  + IGNITE     (Damage + BURNED 3 turn)");
-        starterLines.add("[3] WATER + TIDAL WAVE (Damage x2.0 + Heal 35 HP)");
+        starterLines.add("[3] WATER + TIDAL WAVE (Damage x1.45 + Heal 35 HP)");
         starterLines.add("[4] WATER + FREEZE     (Damage + FROZEN)");
-        starterLines.add("[5] STORM + CHAIN BOLT (Damage x2.5 + WEAKENED)");
-        starterLines.add("[6] STORM + OVERCHARGE (Semua Mage menyerang)");
+        starterLines.add("[5] STORM + CHAIN BOLT (Damage x1.55 + WEAKENED)");
+        starterLines.add("[6] STORM + OVERCHARGE (Semua Mage menyerang x0.85)");
 
         int choice = ui.promptChoice("Pendaftaran Kapten", starterLines, 1, 6, 1, "Pilihan awal (1-6):");
 
@@ -160,7 +160,6 @@ public class GameManager {
 
     private void gameLoop() {
         while (player.isAlive()) {
-            cannonDoubled.set(false);
             boolean isBoss = (stage % 5 == 0);
             Ship currentEnemy;
 
@@ -174,7 +173,11 @@ public class GameManager {
             ui.pause(stageTitle(), buildPreBattleInfo(currentEnemy));
             player.resetAllSpells();
 
+            boolean doubleCannonActiveForBattle = cannonDoubled.get();
             boolean playerWon = battleEngine.runBattle(currentEnemy);
+            if (doubleCannonActiveForBattle) {
+                cannonDoubled.set(false);
+            }
             if (!playerWon) {
                 printGameOver();
                 return;
@@ -237,7 +240,11 @@ public class GameManager {
                     lines.add("Roster penuh. Reward diganti heal kecil.");
                     break;
                 }
-                Mage newMage = new Mage(randomMageName(), randomElement(), 18 + rng.nextInt(18), rng);
+                Mage newMage = new Mage(
+                        randomMageName(),
+                        randomElement(),
+                        BalanceConfig.RECRUIT_MAGE_MIN_PWR + rng.nextInt(BalanceConfig.RECRUIT_MAGE_PWR_VARIANCE),
+                        rng);
                 player.recruitMage(newMage);
                 lines.add("Mage baru bergabung: " + newMage.getInfo(true));
                 lines.add("Jurus: " + newMage.getSpellType().getFullDescription());
@@ -259,7 +266,7 @@ public class GameManager {
             }
             case UPGRADE_CANNON -> {
                 int before = player.getBaseDamage();
-                player.upgradeBaseDamage(7);
+                player.upgradeBaseDamage(BalanceConfig.REWARD_CANNON_UPGRADE);
                 lines.add(String.format("Meriam di-upgrade. Damage: %d -> %d", before, player.getBaseDamage()));
             }
             case UPGRADE_MAGE_POWER -> {
@@ -274,7 +281,7 @@ public class GameManager {
                 int idx = ui.promptChoice("Latih Mage", chooser, 1, player.getMageCount(), 1, "Nomor Mage: ") - 1;
                 Mage mage = player.getRoster().get(idx);
                 int before = mage.getMagicPower();
-                mage.upgradePower(18);
+                mage.upgradePower(BalanceConfig.REWARD_MAGE_POWER_UPGRADE);
                 lines.add(String.format("%s di-upgrade. Power: %d -> %d", mage.getName(), before, mage.getMagicPower()));
             }
             case ADD_POTION -> {
@@ -299,9 +306,9 @@ public class GameManager {
             }
             case UPGRADE_ALL_MAGE_SMALL -> {
                 for (Mage mage : player.getRoster()) {
-                    mage.upgradePower(5);
+                    mage.upgradePower(BalanceConfig.REWARD_ALL_MAGE_UPGRADE);
                 }
-                lines.add("Ritual kolektif aktif. Semua Mage +5 Magic Power.");
+                lines.add("Ritual kolektif aktif. Semua Mage +3 Magic Power.");
             }
             case DOUBLE_CANNON_DMG -> {
                 cannonDoubled.set(true);
@@ -425,16 +432,16 @@ public class GameManager {
     }
 
     private EnemyShip generateEnemy(int stage) {
-        int hp = BalanceConfig.BASE_ENEMY_HP + stage * BalanceConfig.HP_SCALE;
-        int damage = BalanceConfig.BASE_ENEMY_DMG + stage * BalanceConfig.DMG_SCALE;
+        int hp = enemyHpFor(stage);
+        int damage = enemyDamageFor(stage);
         int bounty = BalanceConfig.BASE_BOUNTY + stage * BalanceConfig.BOUNTY_SCALE;
         int xp = BalanceConfig.BASE_XP + stage * BalanceConfig.XP_SCALE;
         return new EnemyShip(randomEnemyName(), hp, damage, randomElement(), bounty, xp, randomTrait());
     }
 
     private EnemyShip generateEnemyDifferentElement(int stage, Element exclude) {
-        int hp = (int) ((BalanceConfig.BASE_ENEMY_HP + stage * BalanceConfig.HP_SCALE) * 1.15);
-        int damage = BalanceConfig.BASE_ENEMY_DMG + stage * BalanceConfig.DMG_SCALE;
+        int hp = (int) (enemyHpFor(stage) * 1.15);
+        int damage = enemyDamageFor(stage);
         int bounty = (int) ((BalanceConfig.BASE_BOUNTY + stage * BalanceConfig.BOUNTY_SCALE) * 1.30);
         int xp = (int) ((BalanceConfig.BASE_XP + stage * BalanceConfig.XP_SCALE) * 1.15);
 
@@ -447,16 +454,16 @@ public class GameManager {
     }
 
     private EnemyShip generateEliteEnemy(int stage) {
-        int hp = (int) ((BalanceConfig.BASE_ENEMY_HP + stage * BalanceConfig.HP_SCALE) * 1.40);
-        int damage = (int) ((BalanceConfig.BASE_ENEMY_DMG + stage * BalanceConfig.DMG_SCALE) * 1.20);
+        int hp = (int) (enemyHpFor(stage) * 1.40);
+        int damage = (int) (enemyDamageFor(stage) * 1.20);
         int bounty = (int) ((BalanceConfig.BASE_BOUNTY + stage * BalanceConfig.BOUNTY_SCALE) * 1.80);
         int xp = (int) ((BalanceConfig.BASE_XP + stage * BalanceConfig.XP_SCALE) * 1.50);
-        return new EnemyShip(randomEnemyName() + " [ELITE]", hp, damage, randomElement(), bounty, xp, randomTrait());
+        return new EnemyShip(randomEnemyName() + " [ELITE]", hp, damage, randomElement(), bounty, xp, randomSpecialTrait());
     }
 
     private BossShip generateBoss(int stage) {
-        int baseHp = BalanceConfig.BASE_ENEMY_HP + stage * BalanceConfig.HP_SCALE;
-        int baseDmg = BalanceConfig.BASE_ENEMY_DMG + stage * BalanceConfig.DMG_SCALE;
+        int baseHp = enemyHpFor(stage);
+        int baseDmg = enemyDamageFor(stage);
         int hp = (int) (baseHp * BalanceConfig.BOSS_HP_MULT);
         int damage = (int) (baseDmg * BalanceConfig.BOSS_DMG_MULT);
         int bounty = BalanceConfig.BASE_BOUNTY + stage * BalanceConfig.BOUNTY_SCALE + BalanceConfig.BOSS_BOUNTY_BON;
@@ -465,14 +472,48 @@ public class GameManager {
         return new BossShip(
                 randomEnemyName() + " [BOSS]",
                 BOSS_TITLES[rng.nextInt(BOSS_TITLES.length)],
-                hp, damage, randomElement(), bounty, xp, randomTrait()
+                hp, damage, randomElement(), bounty, xp, randomSpecialTrait()
         );
     }
 
     private EnemyTrait randomTrait() {
-        EnemyTrait[] traits = EnemyTrait.values();
-        int roll = rng.nextInt(traits.length + traits.length - 1);
-        return roll < traits.length ? traits[roll] : EnemyTrait.NONE;
+        EnemyTrait[] weightedTraits = {
+                EnemyTrait.NONE,
+                EnemyTrait.ARMORED,
+                EnemyTrait.REGENERATE,
+                EnemyTrait.BERSERKER,
+                EnemyTrait.THORNS,
+                EnemyTrait.NONE,
+                EnemyTrait.ARMORED,
+                EnemyTrait.REGENERATE,
+                EnemyTrait.BERSERKER,
+                EnemyTrait.THORNS
+        };
+        return weightedTraits[rng.nextInt(weightedTraits.length)];
+    }
+
+    private EnemyTrait randomSpecialTrait() {
+        EnemyTrait[] traits = {
+                EnemyTrait.ARMORED,
+                EnemyTrait.REGENERATE,
+                EnemyTrait.BERSERKER,
+                EnemyTrait.THORNS
+        };
+        return traits[rng.nextInt(traits.length)];
+    }
+
+    private int enemyHpFor(int stage) {
+        int postBossStages = Math.max(0, stage - 5);
+        return BalanceConfig.BASE_ENEMY_HP
+                + stage * BalanceConfig.HP_SCALE
+                + postBossStages * BalanceConfig.POST_BOSS_HP_SCALE;
+    }
+
+    private int enemyDamageFor(int stage) {
+        int postBossStages = Math.max(0, stage - 5);
+        return BalanceConfig.BASE_ENEMY_DMG
+                + stage * BalanceConfig.DMG_SCALE
+                + postBossStages * BalanceConfig.POST_BOSS_DMG_SCALE;
     }
 
     private Element randomElement() {

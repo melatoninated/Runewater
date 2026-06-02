@@ -75,6 +75,19 @@ class EnemyShipTest {
     }
 
     @Test
+    void processTrait_regenerateDoesNotLogAtFullHp() {
+        // Arrange
+        EnemyShip enemy = new EnemyShip("Regenerator", 100, 20, Element.FIRE, 100, 20, EnemyTrait.REGENERATE);
+
+        // Act
+        String log = enemy.processTrait();
+
+        // Assert
+        assertTrue(log.isEmpty(), "REGENERATE should not claim healing when HP is already full");
+        assertEquals(100, enemy.getCurrentHp(), "HP should remain capped at max HP");
+    }
+
+    @Test
     void processTrait_noneDoesNothing() {
         // Arrange
         EnemyShip enemy = new EnemyShip("Normal", 100, 20, Element.FIRE, 100, 20, EnemyTrait.NONE);

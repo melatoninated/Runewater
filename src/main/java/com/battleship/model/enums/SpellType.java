@@ -7,23 +7,23 @@ import com.battleship.interfaces.Describable;
  * Jurus hanya bisa dipakai SEKALI per battle — keputusan kapan memakainya
  * adalah salah satu keputusan strategis utama dalam game.
  *
- *  INFERNO    [FIRE]  — Damage x3.0. Mage kelelahan (jurus hangus).
+ *  INFERNO    [FIRE]  — Damage x1.6 dengan elemen. Mage kelelahan.
  *  IGNITE     [FIRE]  — Damage normal + BURNED 3 turn (DoT 8 HP/turn).
- *  TIDAL_WAVE [WATER] — Damage x2.0 + heal diri sendiri 35 HP.
+ *  TIDAL_WAVE [WATER] — Damage x1.45 + heal diri sendiri 35 HP.
  *  FREEZE     [WATER] — Damage normal + FROZEN 1 turn (skip + kebal status).
- *  CHAIN_BOLT [STORM] — Damage x2.5 + WEAKENED musuh 3 turn (-30% dmg).
- *  OVERCHARGE [STORM] — Setiap Mage di roster menyerang x1.2 masing-masing.
+ *  CHAIN_BOLT [STORM] — Damage x1.55 + WEAKENED musuh 3 turn (-30% dmg).
+ *  OVERCHARGE [STORM] — Setiap Mage di roster menyerang x0.85 masing-masing.
  */
 public enum SpellType implements Describable {
     // FIRE spells
-    INFERNO   ("Inferno",    "[FIRE]  Damage x3.0. Mage kelelahan (jurus hangus)."),
+    INFERNO   ("Inferno",    "[FIRE]  Damage x1.6 dengan elemen. Mage kelelahan."),
     IGNITE    ("Ignite",     "[FIRE]  Damage normal + BURNED 3 turn (DoT)."),
     // WATER spells
-    TIDAL_WAVE("Tidal Wave", "[WATER] Damage x2.0 + heal diri 35 HP."),
+    TIDAL_WAVE("Tidal Wave", "[WATER] Damage x1.45 + heal diri 35 HP."),
     FREEZE    ("Freeze",     "[WATER] Damage normal + FROZEN 1 turn (skip + kebal status)."),
     // STORM spells
-    CHAIN_BOLT("Chain Bolt", "[STORM] Damage x2.5 + WEAKENED musuh 3 turn (-30% dmg)."),
-    OVERCHARGE("Overcharge", "[STORM] Tiap Mage di roster menyerang x1.2 masing-masing.");
+    CHAIN_BOLT("Chain Bolt", "[STORM] Damage x1.55 + WEAKENED musuh 3 turn (-30% dmg)."),
+    OVERCHARGE("Overcharge", "[STORM] Tiap Mage di roster menyerang x0.85 masing-masing.");
 
     private final String displayName;
     private final String description;
